@@ -251,14 +251,17 @@ void gameBoardAddPlant(GameBoard* board, int row, int col) {
     struct RowSegment *prev_segment = NULL;
     int n = col + 1;
 
-    while(segment->length < n) {
-        n = n - segment->length;
+    while (segment && segment->length < n) {
+        n -= segment->length;
         prev_segment = segment;
         segment = segment->next;
     }
+    if (!segment) return; // defensivo, por las dudas
 
     if (segment->status == 0) {
         if (segment->length == 1) {
+            Planta *planta = (Planta*)malloc(sizeof(Planta));
+            segment->planta_data = planta;
             segment->status = 1;
             return;
         }
@@ -303,7 +306,8 @@ void gameBoardAddPlant(GameBoard* board, int row, int col) {
                 struct RowSegment *new = (struct RowSegment*)malloc(sizeof(struct RowSegment));
                 struct RowSegment *new_next = (struct RowSegment*)malloc(sizeof(struct RowSegment));
                 
-                prev_segment->next = new_prev;
+                if (prev_segment) prev_segment->next = new_prev;
+                else r->first_segment = new_prev;
 
                 new_prev->length = n - 1;
                 new_prev->next = new;
