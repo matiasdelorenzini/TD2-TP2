@@ -384,7 +384,6 @@ void gameBoardRemovePlant(GameBoard* board, int row, int col) {
         free(pos_siguiente); 
         return;
     }
-    printf("Función gameBoardRemovePlant no implementada.\n");
 }
 
 void gameBoardAddZombie(GameBoard* board, int row) {
