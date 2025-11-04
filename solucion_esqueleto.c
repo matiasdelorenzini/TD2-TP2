@@ -332,10 +332,59 @@ void gameBoardAddPlant(GameBoard* board, int row, int col) {
 
 
 void gameBoardRemovePlant(GameBoard* board, int row, int col) {
-    // TODO: Similar a AddPlant, encontrar el segmento que contiene `col`.
-    // TODO: Si es un segmento de tipo PLANTA, convertirlo a VACIO y liberar el `planta_data`.
-    // TODO: Implementar la lógica de FUSIÓN con los segmentos vecinos si también son VACIO.
-    printf("Función gameBoardRemovePlant no implementada.\n");
+ if (!board) return; // Si el puntero al tablero es NULL, no hacer nada
+    if (row < 0 || row >= GRID_ROWS) return; // Lo mismo si la fila está fuera de rango
+    if (col < 0 || col >= GRID_COLS) return; // Lo mismo para la columna
+    GardenRow* grow = &board->rows[row];                                     
+    RowSegment* pos_anterior = NULL;                                                 
+    RowSegment* pos_actual = grow->first_segment; // Saca la fila que corresponde al row dado y agarra el primer segmento y deja un dato para el anterior
+
+    while (pos_actual) {  //Un bucle va a revisar si la columna dada esta dentro del segmeneto actual(mayor al inicio y menor al inicio del siguiente segmento)                                                            
+        if (col >= pos_actual->start_col && col < pos_actual->start_col + pos_actual->length) {   
+            break;                                                           
+        }
+        pos_anterior = pos_actual; //Si la columna no esta, pasa al siguiente nodo y guarda el anterior(lo gaurdo para poder juntar despues si esta vacio)                                                     
+        pos_actual = pos_actual->next;                                                      
+    }
+
+    if (pos_actual->status == STATUS_VACIO) {  //Si no hay planta termina aca
+        return;                                                               
+    }
+
+ 
+    if (pos_actual->planta_data) {  //Si hay planta, libero la memoria y dejo data en null(es como lo muestra el esquemita en la consigna)
+        free(pos_actual->planta_data);                                              
+        pos_actual->planta_data = NULL;                                              
+    }
+
+    RowSegment* pos_siguiente = pos_actual->next; // Agarro el siguiente nodo, que ya teniendo el anterior me va a permitir hacer toda la logica de fusion
+
+    int anterior_vacio = (pos_anterior != NULL && pos_anterior->status == STATUS_VACIO); //Chequeo si el anterior y el siguiente son vacios
+    int siguiente_vacio = (next != NULL && next->status == STATUS_VACIO);
+
+    if (!anterior_vacio && !siguiente_vacio) { //Si los dos tienen planta, le doy propiedades de vacio al actual                                   
+        pos_actual->status = STATUS_VACIO;                                               
+        pos_actual->planta_data = NULL;                                                  
+        return;                                                                   
+    }else if (anterior_vacio && !siguiente_vacio) { //Si solo el anterior es vacio:
+        pos_anterior->length = pos_anterior->length + pos_actual->length; //Sumo longitud del actual al anterior, cambio el puntero del anterior al del actual y libero el actual
+        pos_anterior->next = pos_actual->next;                                             
+        free(pos_actual);                                                          
+        return;                                                              
+    }else if (!anterior_vacio && siguiente_vacio) { //Si solo el siguiente es vacio:
+        pos_actual->status = STATUS_VACIO; //Le doy propiedades de nodo vacio al actual
+        pos_actual->planta_data = NULL;
+        pos_actual->length = pos_actual->length + pos_siguiente->length; //Sumo la longitud del siguiente al actual, cambio el puntero del actual al del siguiente(osea el siguiente del siguiente) y libero el siguiente
+        pos_actual->next = pos_siguiente->next;
+        free(pos_siguiente);
+        return;
+    }else { //Else porque solo me queda una posibilidad: que los dos sean vacios:
+        pos_anterior->length = pos_anterior->length + pos_actual->length + pos_siguiente->length; //Sumo todas las longitudes en el anterior, cambio el puntero del anterior al del siguiente y libero al actual y al siguiente
+        pos_anterior->next = pos_siguiente->next;
+        free(pos_actual);
+        free(pos_siguiente); 
+        return;
+    }
 }
 
 void gameBoardAddZombie(GameBoard* board, int row) {
