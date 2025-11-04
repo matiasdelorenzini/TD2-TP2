@@ -243,15 +243,13 @@ void gameBoardDelete(GameBoard* board) {
 }
 
 void gameBoardAddPlant(GameBoard* board, int row, int col) {
-    
-    // TODO: Encontrar la GardenRow correcta.
     struct GardenRow *r = &(board->rows[row]);
-    
+
     struct RowSegment *segment = r->first_segment;
     struct RowSegment *prev_segment = NULL;
-    int n = col + 1;
+    int n = col + 1;  // base-1
 
-    while(segment->length < n) {
+    while (segment->length < n) {
         n = n - segment->length;
         prev_segment = segment;
         segment = segment->next;
@@ -286,7 +284,7 @@ void gameBoardAddPlant(GameBoard* board, int row, int col) {
 
                 struct RowSegment *new = (struct RowSegment*)malloc(sizeof(struct RowSegment));
                 new->length = 1;
-                new->next = segment->next;
+                new->next = segment->next;   // <-- faltaba el ';' y siempre inicializar
                 new->planta_data = planta;
                 new->start_col = col;
                 new->status = 1;
@@ -299,18 +297,20 @@ void gameBoardAddPlant(GameBoard* board, int row, int col) {
             } else {
                 Planta *planta = (Planta*)malloc(sizeof(Planta));
 
-                struct RowSegment *new_prev = (struct RowSegment*)malloc(sizeof(struct RowSegment));
-                struct RowSegment *new = (struct RowSegment*)malloc(sizeof(struct RowSegment));
-                struct RowSegment *new_next = (struct RowSegment*)malloc(sizeof(struct RowSegment));
-                
-                prev_segment->next = new_prev;
+                struct RowSegment *new_prev  = (struct RowSegment*)malloc(sizeof(struct RowSegment));
+                struct RowSegment *new       = (struct RowSegment*)malloc(sizeof(struct RowSegment));
+                struct RowSegment *new_next  = (struct RowSegment*)malloc(sizeof(struct RowSegment));
+
+                // si prev_segment es NULL, actualizamos la cabeza
+                if (prev_segment) prev_segment->next = new_prev;
+                else r->first_segment = new_prev;
 
                 new_prev->length = n - 1;
-                new_prev->next = new;
+                new_prev->next = new;                 // <-- corregido (typo 'ew_prev')
                 new_prev->start_col = segment->start_col;
                 new_prev->status = 0;
-                new_prev->planta_data = NULL;
-                
+                new_prev->planta_data = NULL;         // <-- inicializar
+
                 new->length = 1;
                 new->planta_data = planta;
                 new->start_col = col;
@@ -318,10 +318,10 @@ void gameBoardAddPlant(GameBoard* board, int row, int col) {
                 new->next = new_next;
 
                 new_next->length = segment->length - n;
-                new_next->next = segment->next;         // <--- sin 'if', siempre
+                new_next->next = segment->next;       // <-- siempre inicializar
                 new_next->start_col = col + 1;
                 new_next->status = 0;
-                new_next->planta_data = NULL;
+                new_next->planta_data = NULL;         // <-- inicializar
 
                 free(segment);
                 return;
@@ -329,6 +329,7 @@ void gameBoardAddPlant(GameBoard* board, int row, int col) {
         }
     }
 }
+
 
 void gameBoardRemovePlant(GameBoard* board, int row, int col) {
     // TODO: Similar a AddPlant, encontrar el segmento que contiene `col`.
