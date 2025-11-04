@@ -159,9 +159,6 @@ void generarZombie() {
     }
 }
 
-
-
-
 void actualizarEstado() {
     for (int i = 0; i < MAX_ZOMBIES; i++) {
         if (zombies[i].activo) {

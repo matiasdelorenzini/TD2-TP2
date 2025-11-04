@@ -286,7 +286,7 @@ void gameBoardAddPlant(GameBoard* board, int row, int col) {
 
                 struct RowSegment *new = (struct RowSegment*)malloc(sizeof(struct RowSegment));
                 new->length = 1;
-                new->next = segment->next
+                new->next = segment->next;
                 new->planta_data = planta;
                 new->start_col = col;
                 new->status = 1;
@@ -306,10 +306,10 @@ void gameBoardAddPlant(GameBoard* board, int row, int col) {
                 prev_segment->next = new_prev;
 
                 new_prev->length = n - 1;
-                ew_prev->next = new;
-                ew_prev->start_col = segment->start_col;
-                ew_prev->status = 0;
-                ew_prev->planta_data = NULL;
+                new_prev->next = new;
+                new_prev->start_col = segment->start_col;
+                new_prev->status = 0;
+                new_prev->planta_data = NULL;
                 
                 new->length = 1;
                 new->planta_data = planta;
