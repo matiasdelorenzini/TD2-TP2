@@ -92,18 +92,29 @@ typedef struct GameBoard {
     int zombie_spawn_timer; // variable para saber cada cuanto crear un zombie
 } GameBoard;
 
-void printRowSegments(GardenRow* row, int fila) {
-    printf("Estado de la fila %d:\n", fila);
-    RowSegment* seg = row->first_segment;
+void printRowSegments(GameBoard* board, int row) {
+    GardenRow* r = &board->rows[row];
+    RowSegment* seg = r->first_segment;
+
+    printf("    ");
+
+    if (!seg) {
+        printf("\n"); // si no hay segmentos, no imprime nada más
+        return;
+    }
+
     while (seg) {
         printf("[%s start=%d len=%d]",
-               seg->status == STATUS_PLANTA ? "PLANTA" : "VACIO",
-               seg->start_col, seg->length);
+               (seg->status == STATUS_PLANTA ? "PLANTA" : "VACIO"),
+               seg->start_col,
+               seg->length);
         if (seg->next) printf(" -> ");
         seg = seg->next;
     }
-    printf("\n\n");
+    printf("\n");
 }
+
+
 
 
 // ========= VARIABLES GLOBALES =========
@@ -256,7 +267,6 @@ void gameBoardDelete(GameBoard* board) {
 }
 
 void gameBoardAddPlant(GameBoard* board, int row, int col) {
-    printf(">>> ADD: fila=%d, col=%d\n", row, col);
     // TODO: Encontrar la GardenRow correcta.
     struct GardenRow *r = &(board->rows[row]);
     
@@ -276,7 +286,6 @@ void gameBoardAddPlant(GameBoard* board, int row, int col) {
             Planta *planta = (Planta*)malloc(sizeof(Planta));
             segment->planta_data = planta;
             segment->status = 1;
-            printRowSegments(&(board->rows[row]), row);
             return;
         }
         if (segment->length > 1) {
@@ -295,7 +304,7 @@ void gameBoardAddPlant(GameBoard* board, int row, int col) {
 
                 segment->length = segment->length - 1;
                 segment->start_col = segment->start_col + 1;
-                printRowSegments(&(board->rows[row]), row);
+
                 return;
             }
             if (segment->length == n) {
@@ -311,7 +320,7 @@ void gameBoardAddPlant(GameBoard* board, int row, int col) {
                 segment->next = new;
 
                 segment->length = segment->length - 1;
-                printRowSegments(&(board->rows[row]), row);
+
                 return;
             } else {
                 Planta *planta = (Planta*)malloc(sizeof(Planta));
@@ -342,7 +351,7 @@ void gameBoardAddPlant(GameBoard* board, int row, int col) {
                 new_next->planta_data = NULL;
 
                 free(segment);
-                printRowSegments(&(board->rows[row]), row);
+
                 return;
             }
         }
@@ -370,7 +379,7 @@ void gameBoardRemovePlant(GameBoard* board, int row, int col) {
     }
 
     if (pos_actual->status == STATUS_VACIO) {  //Si no hay planta termina aca
-        printRowSegments(&(board->rows[row]), row);
+        printRowSegments(board, row);
         return;                                                               
     }
 
@@ -388,13 +397,13 @@ void gameBoardRemovePlant(GameBoard* board, int row, int col) {
     if (!anterior_vacio && !siguiente_vacio) { //Si los dos tienen planta, le doy propiedades de vacio al actual                                   
         pos_actual->status = STATUS_VACIO;                                               
         pos_actual->planta_data = NULL;      
-        printRowSegments(&(board->rows[row]), row);                                            
+        printRowSegments(board, row);                                            
         return;                                                                   
     }else if (anterior_vacio && !siguiente_vacio) { //Si solo el anterior es vacio:
         pos_anterior->length = pos_anterior->length + pos_actual->length; //Sumo longitud del actual al anterior, cambio el puntero del anterior al del actual y libero el actual
         pos_anterior->next = pos_actual->next;                                             
         free(pos_actual); 
-        printRowSegments(&(board->rows[row]), row);                                                         
+        printRowSegments(board, row);                                                         
         return;                                                              
     }else if (!anterior_vacio && siguiente_vacio) { //Si solo el siguiente es vacio:
         pos_actual->status = STATUS_VACIO; //Le doy propiedades de nodo vacio al actual
@@ -402,14 +411,14 @@ void gameBoardRemovePlant(GameBoard* board, int row, int col) {
         pos_actual->length = pos_actual->length + pos_siguiente->length; //Sumo la longitud del siguiente al actual, cambio el puntero del actual al del siguiente(osea el siguiente del siguiente) y libero el siguiente
         pos_actual->next = pos_siguiente->next;
         free(pos_siguiente);
-        printRowSegments(&(board->rows[row]), row);
+        printRowSegments(board, row);
         return;
     }else { //Else porque solo me queda una posibilidad: que los dos sean vacios:
         pos_anterior->length = pos_anterior->length + pos_actual->length + pos_siguiente->length; //Sumo todas las longitudes en el anterior, cambio el puntero del anterior al del siguiente y libero al actual y al siguiente
         pos_anterior->next = pos_siguiente->next;
         free(pos_actual);
         free(pos_siguiente); 
-        printRowSegments(&(board->rows[row]), row);
+        printRowSegments(board, row);
         return;
     }
 }
@@ -550,36 +559,6 @@ void cerrar() {
 
 // ========= TESTING =========
 
-void printRow(GameBoard* board, int row) {
-
-    char* msg;
-
-    struct GardenRow *r = &(board->rows[row]);
-    struct RowSegment *segment = r->first_segment;
-
-    printf("( ");
-
-    while (segment->next != NULL) {
-         if(segment->status == 0) {
-            msg = "hueco";
-        } else {
-            msg = "planta";
-        }
-        printf("[\"%s\", largo \"%i\", inicio \"%i\"] ",msg, segment->length, segment->start_col);
-
-        segment = segment->next;
-    }
-
-    if(segment->status ==0) {
-        msg = "hueco";
-    } else {
-        msg = "planta";
-    }
-    printf("[\"%s\", largo \"%i\", inicio \"%i\"] ",msg, segment->length, segment->start_col);
-    
-    printf(" )\n");
-}
-
 void stringFunctionsTests(){
     char* s_empty = "";
     char* s1 = "A";
@@ -701,15 +680,16 @@ void gameBoardAddPlantTests(){
     printf("\n");
 
     printf("Agregar una planta en una fila vacía. Agregar tanto en el medio como en los extremos:\n");
+    printf("\n");
     printf("Planta en la primera fila columna 0:\n");
     gameBoardAddPlant(game_board,row1,0);
-    printRow(game_board, row1);
+    printRowSegments(game_board, row1);
     printf("Planta en la primera fila columna 3:\n");
     gameBoardAddPlant(game_board,row1,3);
-    printRow(game_board, row1);
+    printRowSegments(game_board, row1);
     printf("Planta en la primera fila columna 8:\n");
     gameBoardAddPlant(game_board,row1,8);
-    printRow(game_board, row1);
+    printRowSegments(game_board, row1);
     printf("\n");
 
     printf("Llenar una fila completa de plantas:\n");
@@ -718,17 +698,16 @@ void gameBoardAddPlantTests(){
         gameBoardAddPlant(game_board,row2,col);
         col++;
     }
-    printRow(game_board, row2);
+    printRowSegments(game_board, row2);
     printf("\n");
-    
 
     printf("Intentar agregar una planta en una celda ya ocupada:\n");
     gameBoardAddPlant(game_board,row3,5);
     printf("Tercera fila antes de intentar agregar una planta en una celda ya ocupada:\n");
-    printRow(game_board, row3);
+    printRowSegments(game_board, row3);
     gameBoardAddPlant(game_board,row3,5);
     printf("Luego:\n");
-    printRow(game_board, row3);
+    printRowSegments(game_board, row3);
     printf("\n");
 
     gameBoardDelete(game_board);
