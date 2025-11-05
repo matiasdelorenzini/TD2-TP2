@@ -92,6 +92,19 @@ typedef struct GameBoard {
     int zombie_spawn_timer; // variable para saber cada cuanto crear un zombie
 } GameBoard;
 
+void printRowSegments(GardenRow* row, int fila) {
+    printf("Estado de la fila %d:\n", fila);
+    RowSegment* seg = row->first_segment;
+    while (seg) {
+        printf("[%s start=%d len=%d]",
+               seg->status == STATUS_PLANTA ? "PLANTA" : "VACIO",
+               seg->start_col, seg->length);
+        if (seg->next) printf(" -> ");
+        seg = seg->next;
+    }
+    printf("\n\n");
+}
+
 
 // ========= VARIABLES GLOBALES =========
 SDL_Window* window = NULL;
@@ -243,7 +256,7 @@ void gameBoardDelete(GameBoard* board) {
 }
 
 void gameBoardAddPlant(GameBoard* board, int row, int col) {
-    
+    printf(">>> ADD: fila=%d, col=%d\n", row, col);
     // TODO: Encontrar la GardenRow correcta.
     struct GardenRow *r = &(board->rows[row]);
     
@@ -263,6 +276,7 @@ void gameBoardAddPlant(GameBoard* board, int row, int col) {
             Planta *planta = (Planta*)malloc(sizeof(Planta));
             segment->planta_data = planta;
             segment->status = 1;
+            printRowSegments(&(board->rows[row]), row);
             return;
         }
         if (segment->length > 1) {
@@ -281,7 +295,7 @@ void gameBoardAddPlant(GameBoard* board, int row, int col) {
 
                 segment->length = segment->length - 1;
                 segment->start_col = segment->start_col + 1;
-
+                printRowSegments(&(board->rows[row]), row);
                 return;
             }
             if (segment->length == n) {
@@ -297,7 +311,7 @@ void gameBoardAddPlant(GameBoard* board, int row, int col) {
                 segment->next = new;
 
                 segment->length = segment->length - 1;
-
+                printRowSegments(&(board->rows[row]), row);
                 return;
             } else {
                 Planta *planta = (Planta*)malloc(sizeof(Planta));
@@ -328,6 +342,7 @@ void gameBoardAddPlant(GameBoard* board, int row, int col) {
                 new_next->planta_data = NULL;
 
                 free(segment);
+                printRowSegments(&(board->rows[row]), row);
                 return;
             }
         }
@@ -335,6 +350,7 @@ void gameBoardAddPlant(GameBoard* board, int row, int col) {
 }
 
 void gameBoardRemovePlant(GameBoard* board, int row, int col) {
+    printf(">>> REMOVE: fila=%d, col=%d\n", row, col);
     if (!board){ 
     return; }// Si el puntero al tablero es NULL, no hacer nada
     if (row < 0 || row >= GRID_ROWS){
@@ -354,6 +370,7 @@ void gameBoardRemovePlant(GameBoard* board, int row, int col) {
     }
 
     if (pos_actual->status == STATUS_VACIO) {  //Si no hay planta termina aca
+        printRowSegments(&(board->rows[row]), row);
         return;                                                               
     }
 
@@ -370,12 +387,14 @@ void gameBoardRemovePlant(GameBoard* board, int row, int col) {
 
     if (!anterior_vacio && !siguiente_vacio) { //Si los dos tienen planta, le doy propiedades de vacio al actual                                   
         pos_actual->status = STATUS_VACIO;                                               
-        pos_actual->planta_data = NULL;                                                  
+        pos_actual->planta_data = NULL;      
+        printRowSegments(&(board->rows[row]), row);                                            
         return;                                                                   
     }else if (anterior_vacio && !siguiente_vacio) { //Si solo el anterior es vacio:
         pos_anterior->length = pos_anterior->length + pos_actual->length; //Sumo longitud del actual al anterior, cambio el puntero del anterior al del actual y libero el actual
         pos_anterior->next = pos_actual->next;                                             
-        free(pos_actual);                                                          
+        free(pos_actual); 
+        printRowSegments(&(board->rows[row]), row);                                                         
         return;                                                              
     }else if (!anterior_vacio && siguiente_vacio) { //Si solo el siguiente es vacio:
         pos_actual->status = STATUS_VACIO; //Le doy propiedades de nodo vacio al actual
@@ -383,12 +402,14 @@ void gameBoardRemovePlant(GameBoard* board, int row, int col) {
         pos_actual->length = pos_actual->length + pos_siguiente->length; //Sumo la longitud del siguiente al actual, cambio el puntero del actual al del siguiente(osea el siguiente del siguiente) y libero el siguiente
         pos_actual->next = pos_siguiente->next;
         free(pos_siguiente);
+        printRowSegments(&(board->rows[row]), row);
         return;
     }else { //Else porque solo me queda una posibilidad: que los dos sean vacios:
         pos_anterior->length = pos_anterior->length + pos_actual->length + pos_siguiente->length; //Sumo todas las longitudes en el anterior, cambio el puntero del anterior al del siguiente y libero al actual y al siguiente
         pos_anterior->next = pos_siguiente->next;
         free(pos_actual);
         free(pos_siguiente); 
+        printRowSegments(&(board->rows[row]), row);
         return;
     }
 }
@@ -665,6 +686,7 @@ int main(int argc, char* args[]) {
     while (!game_over) {
         while (SDL_PollEvent(&e) != 0) {
             if (e.type == SDL_QUIT) game_over = 1;
+
             if (e.type == SDL_MOUSEMOTION) {
                 int mouse_x = e.motion.x;
                 int mouse_y = e.motion.y;
@@ -674,9 +696,26 @@ int main(int argc, char* args[]) {
                     cursor.row = (mouse_y - GRID_OFFSET_Y) / CELL_HEIGHT;
                 }
             }
+
             if (e.type == SDL_MOUSEBUTTONDOWN) {
-                gameBoardAddPlant(game_board, cursor.row, cursor.col);
+                if (e.button.button == SDL_BUTTON_LEFT) {
+                    gameBoardAddPlant(game_board, cursor.row, cursor.col);
+                } else if (e.button.button == SDL_BUTTON_RIGHT) {
+                    gameBoardRemovePlant(game_board, cursor.row, cursor.col);
+                }
             }
+
+            if (e.type == SDL_KEYDOWN) {
+                if (e.key.keysym.sym == SDLK_z) {
+                    gameBoardAddZombie(game_board, cursor.row);
+                }
+            }
+        
+
+
+
+
+
         }
 
         gameBoardUpdate(game_board);
