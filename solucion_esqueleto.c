@@ -94,24 +94,47 @@ typedef struct GameBoard {
 
 void printRowSegments(GameBoard* board, int row) {
     GardenRow* r = &board->rows[row];
-    RowSegment* seg = r->first_segment;
+    RowSegment* segment = r->first_segment;
 
     printf("    ");
 
-    if (!seg) {
+    if (!segment) {
         printf("\n"); // si no hay segmentos, no imprime nada más
         return;
     }
 
-    while (seg) {
+    while (segment) {
         printf("[%s start=%d len=%d]",
-               (seg->status == STATUS_PLANTA ? "PLANTA" : "VACIO"),
-               seg->start_col,
-               seg->length);
-        if (seg->next) printf(" -> ");
-        seg = seg->next;
+               (segment->status == STATUS_PLANTA ? "PLANTA" : "VACIO"),
+               segment->start_col,
+               segment->length);
+        if (segment->next) printf(" -> ");
+        segment = segment->next;
     }
 }
+
+void printZombieList(GameBoard* board, int row) {
+    GardenRow* r = &board->rows[row];
+    ZombieNode* zombie = r->first_zombie;
+
+    printf("    ");
+
+    if (!zombie) {
+        printf("\n"); // si no hay zombies, no imprime nada más
+        return;
+    }
+
+    int i = 1;
+
+    while (zombie->next != NULL) {
+        printf("[z %i]",i);
+        i++;
+        zombie = zombie->next;
+        if (zombie->next != NULL) printf(" -> ");
+    }
+    printf("\n");
+}
+
 
 
 
@@ -646,13 +669,13 @@ void stringFunctionsTests(){
     printf("\n");
     
     printf("String que incluya todos los caracteres válidos distintos de cero:\n");
-    char printableChars[126 - 32 + 2]; // +1 por el rango, +1 por el '\0'
+    char printableChars[126 - 32 + 2];
     int index = 0;
     for (int i = 32; i <= 126; i++) {
         printableChars[index] = (char)i;
         index++;
     }
-    printableChars[index] = '\0'; // terminador
+    printableChars[index] = '\0';
     char* duplicate3 = strDuplicate(printableChars);
     printf("\"%s\"\n",printableChars);
     printf("\"%s\"\n",duplicate3);
@@ -697,28 +720,24 @@ void stringFunctionsTests(){
 
     printf("--------- strConcatenate ---------\n\n");
 
-    // 1) "" + "AAA"
     char *a1 = strDuplicate(s_empty);
     char *b1 = strDuplicate(s2);
-    char *concatenation1 = strConcatenate(a1, b1);  // strConcatenate liberará a1 y b1
+    char *concatenation1 = strConcatenate(a1, b1);
     printf("\"%s\" + \"%s\" = \"%s\"\n", s_empty, s2, concatenation1);
     free(concatenation1);
 
-    // 2) "AAA" + ""
     char *a2 = strDuplicate(s2);
     char *b2 = strDuplicate(s_empty);
     char *concatenation2 = strConcatenate(a2, b2);
     printf("\"%s\" + \"%s\" = \"%s\"\n", s2, s_empty, concatenation2);
     free(concatenation2);
 
-    // 3) "AAA" + "B"
     char *a3 = strDuplicate(s2);
     char *b3 = strDuplicate(s5);
     char *concatenation3 = strConcatenate(a3, b3);
     printf("\"%s\" + \"%s\" = \"%s\"\n", s2, s5, concatenation3);
     free(concatenation3);
 
-    // 4) "AAABB" + "CCCCC"
     char *a4 = strDuplicate(s3);
     char *b4 = strDuplicate(s6);
     char *concatenation4 = strConcatenate(a4, b4);
@@ -830,6 +849,40 @@ void gameBoardRemovePlantTests (){
     printf("\n\n\n");
 }
 
+void gameBoardAddZombieTests(){
+    game_board = gameBoardNew();
+
+    int row1 = 0;
+    int row2 = 1;
+
+    printf("--------- gameBoardAddZombie ---------\n");
+    printf("\n");
+
+    printf("Tomar una lista de 3 zombies y agregarle uno más:\n");
+    printf("\n");
+    gameBoardAddZombie(game_board,row1);
+    gameBoardAddZombie(game_board,row1);
+    gameBoardAddZombie(game_board,row1);
+    printf("Lista inicial:\n");
+    printZombieList(game_board,row1);
+    printf("\n");
+    gameBoardAddZombie(game_board,row1);
+    printf("Lista final:\n");
+    printZombieList(game_board,row1);
+    printf("\n");
+
+    printf("Crear una lista de 10000 zombies:\n");
+    printf("\n");
+    for (int i = 0; i < 1001; i++) {
+        gameBoardAddZombie(game_board,row2);
+    }
+    printZombieList(game_board,row2);
+    printf("\n");
+
+    gameBoardDelete(game_board);
+    printf("\n\n\n");
+}
+
 
 
 int main(int argc, char* args[]) {
@@ -837,6 +890,7 @@ int main(int argc, char* args[]) {
     stringFunctionsTests();
     gameBoardAddPlantTests();
     gameBoardRemovePlantTests();
+    gameBoardAddZombieTests();
 
 
     srand(time(NULL));
