@@ -359,7 +359,6 @@ void gameBoardAddPlant(GameBoard* board, int row, int col) {
 }
 
 void gameBoardRemovePlant(GameBoard* board, int row, int col) {
-    printf(">>> REMOVE: fila=%d, col=%d\n", row, col);
     if (!board){ 
     return; }// Si el puntero al tablero es NULL, no hacer nada
     if (row < 0 || row >= GRID_ROWS){
@@ -379,7 +378,6 @@ void gameBoardRemovePlant(GameBoard* board, int row, int col) {
     }
 
     if (pos_actual->status == STATUS_VACIO) {  //Si no hay planta termina aca
-        printRowSegments(board, row);
         return;                                                               
     }
 
@@ -397,13 +395,11 @@ void gameBoardRemovePlant(GameBoard* board, int row, int col) {
     if (!anterior_vacio && !siguiente_vacio) { //Si los dos tienen planta, le doy propiedades de vacio al actual                                   
         pos_actual->status = STATUS_VACIO;                                               
         pos_actual->planta_data = NULL;      
-        printRowSegments(board, row);                                            
         return;                                                                   
     }else if (anterior_vacio && !siguiente_vacio) { //Si solo el anterior es vacio:
         pos_anterior->length = pos_anterior->length + pos_actual->length; //Sumo longitud del actual al anterior, cambio el puntero del anterior al del actual y libero el actual
         pos_anterior->next = pos_actual->next;                                             
         free(pos_actual); 
-        printRowSegments(board, row);                                                         
         return;                                                              
     }else if (!anterior_vacio && siguiente_vacio) { //Si solo el siguiente es vacio:
         pos_actual->status = STATUS_VACIO; //Le doy propiedades de nodo vacio al actual
@@ -411,14 +407,12 @@ void gameBoardRemovePlant(GameBoard* board, int row, int col) {
         pos_actual->length = pos_actual->length + pos_siguiente->length; //Sumo la longitud del siguiente al actual, cambio el puntero del actual al del siguiente(osea el siguiente del siguiente) y libero el siguiente
         pos_actual->next = pos_siguiente->next;
         free(pos_siguiente);
-        printRowSegments(board, row);
         return;
     }else { //Else porque solo me queda una posibilidad: que los dos sean vacios:
         pos_anterior->length = pos_anterior->length + pos_actual->length + pos_siguiente->length; //Sumo todas las longitudes en el anterior, cambio el puntero del anterior al del siguiente y libero al actual y al siguiente
         pos_anterior->next = pos_siguiente->next;
         free(pos_actual);
         free(pos_siguiente); 
-        printRowSegments(board, row);
         return;
     }
 }
