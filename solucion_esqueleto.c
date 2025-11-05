@@ -111,7 +111,6 @@ void printRowSegments(GameBoard* board, int row) {
         if (seg->next) printf(" -> ");
         seg = seg->next;
     }
-    printf("\n");
 }
 
 
@@ -130,15 +129,22 @@ GameBoard* game_board = NULL;
 
 // ========= FUNCIONES =========
 
+// TERMINADOS:
+// Códigos
+// Comentarios
+// Tests
 char* strDuplicate(char* src) {
-    int n = 0;  // Cantidad de caracteres totales de src
+    // Cantidad de caracteres totales de src
+    int n = 0;
 
     for (int i = 0; *(src+i) != '\0'; i++) {
         n++;
     }
     
+    // Asignación de memoria con malloc()
     char *res = (char*)malloc(sizeof(char) * (n + 1));
 
+    // Concatenación secuencial de los caracteres del original en la copia
     for (int i = 0; *(src+i) != '\0'; i++) {
         *(res+i) = *(src+i);
     }
@@ -147,7 +153,13 @@ char* strDuplicate(char* src) {
     return res;
 }
 
+// TERMINADOS:
+// Códigos
+// Comentarios
+// Tests
 int strCompare(char* s1, char* s2) {
+
+    // Se analiza caracter por caracter a ambos strings. Cuando difieren, se calcula cuál es el mayor
     int i = 0;
     while (s1[i] != '\0' && s2[i] != '\0') {
         if(s1[i] < s2[i]) {
@@ -158,6 +170,8 @@ int strCompare(char* s1, char* s2) {
         }
         i++;
     }
+
+    // Si tienen distinta longitud, el mayor es el que tenga más caracteres
     if (s1[i] == '\0' && s2[i] != '\0') {
         return 1;
     }
@@ -167,16 +181,25 @@ int strCompare(char* s1, char* s2) {
     return 0;
 }
 
+// TERMINADOS:
+// Códigos
+// Comentarios
+// Tests
 char* strConcatenate(char* src1, char* src2) {
-    int n = 0;  // Cantidad de caracteres totales de strConcatenate(src1, src2)
+
+    // Cantidad de caracteres totales de strConcatenate(src1, src2)
+    int n = 0;
     for (int i = 0; *(src1+i) != '\0'; i++) {
         n++;
     }
     for (int i = 0; *(src2+i) != '\0'; i++) {
         n++;
     }
+
+    // Asignación de memoria con malloc()
     char *res = (char*)malloc(sizeof(char) * (n + 1));
 
+    // Se añaden secuencialmente, caracter por caracter, todos los caracteres de ambos strings, y luego el caracter final '\0'
     int index = 0;
     for (int i = 0; src1[i] != '\0'; i++)
     {
@@ -191,13 +214,12 @@ char* strConcatenate(char* src1, char* src2) {
 
     *(res+n) = '\0'; 
 
+    // Se liberan los strings originales
     free(src1);
     free(src2);
 
     return res;
 }
-
-
 
 GameBoard* gameBoardNew() {
     GameBoard* board = (GameBoard*)malloc(sizeof(GameBoard));
@@ -226,12 +248,15 @@ GameBoard* gameBoardNew() {
     return board;
 }
 
+// TERMINADOS:
+// Códigos
+// Comentarios
 void gameBoardDelete(GameBoard* board) {
 
-    // RECORRER TODAS LAS ROWS
+    // Se recorren todas las rows
     for (int i = 0; i < GRID_ROWS; i++)
     {
-        // LIBERAR SEGMENTOS
+        // En cada row, se libera la informacion de todos los segmentos
         struct GardenRow *garden_row = &(board->rows[i]);
 
         if (garden_row->first_segment != NULL) {
@@ -242,7 +267,7 @@ void gameBoardDelete(GameBoard* board) {
                 struct RowSegment *tofree = segment;
                 segment = segment->next;
 
-                // LIBERAR PLANTAS
+                // Antes de liberar cada segmento, se liberan sus plantas, de contener alguna
                 if(tofree->status == 1) free(tofree->planta_data);
                 free(tofree);
             }
@@ -250,7 +275,7 @@ void gameBoardDelete(GameBoard* board) {
             free(segment);
         }
 
-        // LIMPIAR ZOMBIS
+        // Se procede a la liberación de todos los Zombies
         if (garden_row->first_zombie != NULL) {
             struct ZombieNode *zombie = garden_row->first_zombie;
             while (zombie->next !=  NULL) {
@@ -262,33 +287,54 @@ void gameBoardDelete(GameBoard* board) {
             free(zombie);
         }
     }
-    // LIBERAR BOARD
+    // Por último, le libera el tablero
     free(board);
 }
 
+// TERMINADOS:
+// Código
+// Comentarios
+// Tests
 void gameBoardAddPlant(GameBoard* board, int row, int col) {
-    // TODO: Encontrar la GardenRow correcta.
+    // Encuentra la GardenRow y se define una longitud "n" en base 1 para facilitar operaciones con segmentos
     struct GardenRow *r = &(board->rows[row]);
     
     struct RowSegment *segment = r->first_segment;
     struct RowSegment *prev_segment = NULL;
     int n = col + 1;
 
+    // La longitud "n" se recorta segmento a segmento hasta encontrar el segmento que contiene la columna en la que se quiere añadir la planta
     while (segment && segment->length < n) {
-        n -= segment->length;
+        n = n - segment->length;
         prev_segment = segment;
         segment = segment->next;
     }
-    if (!segment) return; // defensivo, por las dudas
+    if (!segment) return;
 
+    // Si el segmento está vacío, se procede con la lógica de adición de planta
     if (segment->status == 0) {
+
+        // Si el segmento tiene 1 de largo, simplemente se modifica su "status" y "planta_data", sin necesidad de dividir al segmento
         if (segment->length == 1) {
             Planta *planta = (Planta*)malloc(sizeof(Planta));
             segment->planta_data = planta;
             segment->status = 1;
             return;
         }
+
+        // Si el segmento es más largo que 1, se añade una planta y se modifican los segmentos involucrados según sea el caso
         if (segment->length > 1) {
+
+            /* 
+            Nuestra longitud n, ya recortada hasta ser igual o menor que la longitud del segmento que contiene a la columna en la 
+            cual se quiere añadir la planta, es ahora el índice de la columna relativa a segment en la cual queremos añadir la 
+            planta, en base 1.
+
+            Si esta posición es 1, se añade la planta en la primera posición del segmento, por lo tanto:
+                - Se modifica el campo next del segmento previo (si existe) para que apunte a la planta
+                - Se crea un nuevo segmento para alojar a la planta
+                - Se modifica la longitud del segmento que contenía a la columna de la nueva planta para dejarle espacio al de la planta
+            */ 
             if (n == 1) {
                 Planta *planta = (Planta*)malloc(sizeof(Planta));
 
@@ -307,6 +353,15 @@ void gameBoardAddPlant(GameBoard* board, int row, int col) {
 
                 return;
             }
+
+            /*
+            Si esta posición equivale al largo del segmento, significa que la planta se va a añadir en la última posición del mismo,
+            por ende:
+                - Se modifica la longitud del segmento que contenía a la columna de la nueva planta para dejarle espacio al de la planta,
+                además de su campo next para que apunte a la misma
+                - Se crea un nuevo segmento para alojar a la planta
+                - Se le hace apuntar al siguiente segmento (si lo hay) a la planta nueva
+            */ 
             if (segment->length == n) {
                 Planta *planta = (Planta*)malloc(sizeof(Planta));
 
@@ -322,7 +377,18 @@ void gameBoardAddPlant(GameBoard* board, int row, int col) {
                 segment->length = segment->length - 1;
 
                 return;
-            } else {
+            } 
+            
+            /*
+            Si esta posición está en algúna posición del segmento que no sean los extremos:
+                - Se crea un nuevo segmento que aloje a la planta
+                - Se crea un nuveo segmento que representará a la parte del segmento original anterior a la planta
+                - Se crea un nuveo segmento que representará a la parte del segmento original posterior a la planta
+                - Se definen todos los datos necesarios de estos tres segmentos, y se apuntan entre si de la forma
+                (segmento vacio previo) -> (planta) -> (segmento vacio posterior)
+                - Se libera la memoria del segmento original
+            */ 
+            else {
                 Planta *planta = (Planta*)malloc(sizeof(Planta));
 
                 struct RowSegment *new_prev = (struct RowSegment*)malloc(sizeof(struct RowSegment));
@@ -345,7 +411,7 @@ void gameBoardAddPlant(GameBoard* board, int row, int col) {
                 new->next = new_next;
 
                 new_next->length = segment->length - n;
-                new_next->next = segment->next;         // <--- sin 'if', siempre
+                new_next->next = segment->next;
                 new_next->start_col = col + 1;
                 new_next->status = 0;
                 new_next->planta_data = NULL;
@@ -358,13 +424,13 @@ void gameBoardAddPlant(GameBoard* board, int row, int col) {
     }
 }
 
+// TERMINADOS:
+// Código
+// Tests
+// Comentarios
 void gameBoardRemovePlant(GameBoard* board, int row, int col) {
-    if (!board){ 
-    return; }// Si el puntero al tablero es NULL, no hacer nada
-    if (row < 0 || row >= GRID_ROWS){
-    return; }// Lo mismo si la fila está fuera de rango
-    if (col < 0 || col >= GRID_COLS) {
-        return;} // Lo mismo para la columna
+    if (!board || row < 0 || row >= GRID_ROWS || col < 0 || col >= GRID_COLS) return; // Si el puntero al tablero es NULL, o si la fila o la columna está fuera de rango, no hacer nada
+    
     GardenRow* grow = &board->rows[row];                                     
     RowSegment* pos_anterior = NULL;                                                 
     RowSegment* pos_actual = grow->first_segment; // Saca la fila que corresponde al row dado y agarra el primer segmento y deja un dato para el anterior
@@ -572,7 +638,7 @@ void stringFunctionsTests(){
     free(duplicate1);
     printf("\n");
     
-    printf("String de un carácter:\n");
+    printf("String de un caracter:\n");
     char* duplicate2 = strDuplicate(s1);
     printf("\"%s\"\n",s1);
     printf("\"%s\"\n",duplicate2);
@@ -604,14 +670,14 @@ void stringFunctionsTests(){
     printf("Resultado de la comparación: \"%i\"\n",comparison1);
     printf("\n");
 
-    printf("Dos string de un carácter:\n");
+    printf("Dos string de un caracter:\n");
     int comparison2 = strCompare(s1,s1);
     printf("\"%s\"\n",s1);
     printf("\"%s\"\n",s1);
     printf("Resultado de la comparación: \"%i\"\n",comparison2);
     printf("\n");
     
-    printf("Strings iguales hasta un carácter:\n");
+    printf("Strings iguales hasta un caracter:\n");
     int comparison3 = strCompare(s2,s3);
     int comparison4 = strCompare(s3,s2);
     printf("s2: \"%s\"\n",s2);
@@ -668,8 +734,7 @@ void gameBoardAddPlantTests(){
     int row1 = 0;
     int row2 = 1;
     int row3 = 2;
-    int col = 0;
-    
+
     printf("--------- gameBoardAddPlant ---------\n");
     printf("\n");
 
@@ -678,30 +743,87 @@ void gameBoardAddPlantTests(){
     printf("Planta en la primera fila columna 0:\n");
     gameBoardAddPlant(game_board,row1,0);
     printRowSegments(game_board, row1);
+    printf("\n");
     printf("Planta en la primera fila columna 3:\n");
     gameBoardAddPlant(game_board,row1,3);
     printRowSegments(game_board, row1);
+    printf("\n");
     printf("Planta en la primera fila columna 8:\n");
     gameBoardAddPlant(game_board,row1,8);
     printRowSegments(game_board, row1);
     printf("\n");
+    printf("\n");
 
     printf("Llenar una fila completa de plantas:\n");
     printf("Segunda fila llenada:\n");
-    while (col < 9) {
-        gameBoardAddPlant(game_board,row2,col);
-        col++;
+    for (int i = 0; i < GRID_COLS; i++) {
+        gameBoardAddPlant(game_board,row2,i);
     }
     printRowSegments(game_board, row2);
+    printf("\n");
     printf("\n");
 
     printf("Intentar agregar una planta en una celda ya ocupada:\n");
     gameBoardAddPlant(game_board,row3,5);
     printf("Tercera fila antes de intentar agregar una planta en una celda ya ocupada:\n");
     printRowSegments(game_board, row3);
+    printf("\n");
     gameBoardAddPlant(game_board,row3,5);
     printf("Luego:\n");
     printRowSegments(game_board, row3);
+    printf("\n");
+    printf("\n");
+
+    gameBoardDelete(game_board);
+    printf("\n\n\n");
+}
+
+void gameBoardRemovePlantTests (){
+    game_board = gameBoardNew();
+
+    int row1 = 0;
+    int row2 = 1;
+    
+    printf("--------- gameBoardRemovePlant ---------\n");
+    printf("\n");
+
+    printf("Plantar en las columnas 3, 4 y 5. Sacar la planta de la columna 4:\n");
+    printf("\n");
+    gameBoardAddPlant(game_board,row1,3);
+    gameBoardAddPlant(game_board,row1,4);
+    gameBoardAddPlant(game_board,row1,5);
+    printf("Estado inicial:\n");
+    printRowSegments(game_board,row1);
+    printf("\n");
+    gameBoardRemovePlant(game_board,row1,4);
+    printf("Estado final:\n");
+    printRowSegments(game_board,row1);
+    printf("\n");
+    printf("\n");
+
+    printf("Siguiendo el caso anterior, sacar luego la planta en la columna 3:\n");
+    printf("\n");
+    printf("Estado inicial:\n");
+    printRowSegments(game_board,row1);
+    printf("\n");
+    gameBoardRemovePlant(game_board,row1,3);
+    printf("Estado final:\n");
+    printRowSegments(game_board,row1);
+    printf("\n");
+    printf("\n");
+
+    printf("Llenar una fila de plantas. Sacar una del medio:\n");
+    printf("\n");
+    for (int i = 0; i < GRID_COLS; i++) {
+        gameBoardAddPlant(game_board,row2,i);
+    }
+    printf("Estado inicial:\n");
+    printRowSegments(game_board,row2);
+    printf("\n");
+    gameBoardRemovePlant(game_board,row2,4);
+    printf("Estado final:\n");
+    printRowSegments(game_board,row2);
+    printf("\n");
     printf("\n");
 
     gameBoardDelete(game_board);
@@ -710,12 +832,11 @@ void gameBoardAddPlantTests(){
 
 
 
-
 int main(int argc, char* args[]) {
 
     stringFunctionsTests();
-
     gameBoardAddPlantTests();
+    gameBoardRemovePlantTests();
 
 
     srand(time(NULL));
