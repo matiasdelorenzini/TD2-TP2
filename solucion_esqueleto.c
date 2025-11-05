@@ -527,11 +527,39 @@ void cerrar() {
 }
 
 
-int main(int argc, char* args[]) {
+// ========= TESTING =========
 
-    // TESTS 
-    // strDuplicate 
+void printRow(GameBoard* board, int row) {
 
+    char* msg;
+
+    struct GardenRow *r = &(board->rows[row]);
+    struct RowSegment *segment = r->first_segment;
+
+    printf("( ");
+
+    while (segment->next != NULL) {
+         if(segment->status == 0) {
+            msg = "hueco";
+        } else {
+            msg = "planta";
+        }
+        printf("[\"%s\", largo \"%i\", inicio \"%i\"] ",msg, segment->length, segment->start_col);
+
+        segment = segment->next;
+    }
+
+    if(segment->status ==0) {
+        msg = "hueco";
+    } else {
+        msg = "planta";
+    }
+    printf("[\"%s\", largo \"%i\", inicio \"%i\"] ",msg, segment->length, segment->start_col);
+    
+    printf(" )\n");
+}
+
+void stringFunctionsTests(){
     char* s_empty = "";
     char* s1 = "A";
     char* s2 = "AAA";
@@ -539,24 +567,24 @@ int main(int argc, char* args[]) {
     char* s4 = "CCC";
     char* s5 = "B";
     char* s6 = "CCCCC";
-
+    
     printf("--------- strDuplicate ---------\n");
     printf("\n");
-
+    
     printf("String vacio:\n");
     char* duplicate1 = strDuplicate(s_empty);
     printf("\"%s\"\n",s_empty);
     printf("\"%s\"\n",duplicate1);
     free(duplicate1);
     printf("\n");
-
+    
     printf("String de un carácter:\n");
     char* duplicate2 = strDuplicate(s1);
     printf("\"%s\"\n",s1);
     printf("\"%s\"\n",duplicate2);
     free(duplicate2);
     printf("\n");
-
+    
     printf("String que incluya todos los caracteres válidos distintos de cero:\n");
     char printableChars[126 - 32 + 2]; // +1 por el rango, +1 por el '\0'
     int index = 0;
@@ -570,10 +598,6 @@ int main(int argc, char* args[]) {
     printf("\"%s\"\n",duplicate3);
     free(duplicate3);
     printf("\n");
-
-    printf("\n\n\n");
-
-
 
 
     printf("--------- strCompare ---------\n");
@@ -610,11 +634,6 @@ int main(int argc, char* args[]) {
     printf("strCompare(s2,s3): \"%i\"\n",comparison5);
     printf("strCompare(s3,s2): \"%i\"\n",comparison6);
     printf("\n");
-    
-    printf("\n\n\n");
-
-
-
 
     printf("--------- strConcatenate ---------\n\n");
 
@@ -646,12 +665,63 @@ int main(int argc, char* args[]) {
     printf("\"%s\" + \"%s\" = \"%s\"\n", s3, s6, concatenation4);
     free(concatenation4);
 
-
-
-
     printf("\n\n\n");
+}
 
-    printf("--------- gameBoardAddPlant ---------\n\n");
+void gameBoardAddPlantTests(){
+    game_board = gameBoardNew();
+
+    int row1 = 0;
+    int row2 = 1;
+    int row3 = 2;
+    int col = 0;
+    
+    printf("--------- gameBoardAddPlant ---------\n");
+    printf("\n");
+
+    printf("Agregar una planta en una fila vacía. Agregar tanto en el medio como en los extremos:\n");
+    printf("Planta en la primera fila columna 0:\n");
+    gameBoardAddPlant(game_board,row1,0);
+    printRow(game_board, row1);
+    printf("Planta en la primera fila columna 3:\n");
+    gameBoardAddPlant(game_board,row1,3);
+    printRow(game_board, row1);
+    printf("Planta en la primera fila columna 8:\n");
+    gameBoardAddPlant(game_board,row1,8);
+    printRow(game_board, row1);
+    printf("\n");
+
+    printf("Llenar una fila completa de plantas:\n");
+    printf("Segunda fila llenada:\n");
+    while (col < 9) {
+        gameBoardAddPlant(game_board,row2,col);
+        col++;
+    }
+    printRow(game_board, row2);
+    printf("\n");
+    
+
+    printf("Intentar agregar una planta en una celda ya ocupada:\n");
+    gameBoardAddPlant(game_board,row3,5);
+    printf("Tercera fila antes de intentar agregar una planta en una celda ya ocupada:\n");
+    printRow(game_board, row3);
+    gameBoardAddPlant(game_board,row3,5);
+    printf("Luego:\n");
+    printRow(game_board, row3);
+    printf("\n");
+
+    gameBoardDelete(game_board);
+    printf("\n\n\n");
+}
+
+
+
+
+int main(int argc, char* args[]) {
+
+    stringFunctionsTests();
+
+    gameBoardAddPlantTests();
 
 
     srand(time(NULL));
