@@ -536,10 +536,106 @@ void gameBoardAddZombie(GameBoard* board, int row) {
 
 void gameBoardUpdate(GameBoard* board) {
     if (!board) return;
-    // TODO: Re-implementar la lógica de `actualizarEstado` usando las nuevas estructuras.
-    // TODO: Recorrer las listas de zombies de cada fila para moverlos y animarlos.
-    // TODO: Recorrer las listas de segmentos de cada fila para gestionar los cooldowns y animaciones de las plantas.
-    // TODO: Actualizar la lógica de disparo, colisiones y spawn de zombies.
+
+        for (int i = 0; i < GRID_ROWS; i++) {
+            ZombieNode* pos_anterior = NULL; //Para despues
+            ZombieNode* pos_actual = board->rows[i].first_zombie; //Busco en el gameboard que tengo al nodo de zombie
+            while(pos_actual){ //Si existe un zombie, transfiero su dato a un objeto Zombie(que viene de ZombieNode en el board)
+            Zombie* z = &pos_actual->zombie_data;
+            if(z->activo){
+                float distance_per_tick = ZOMBIE_DISTANCE_PER_CYCLE / (float)(ZOMBIE_ANIMATION_SPEED * ZOMBIE_TOTAL_FRAMES);
+                z->pos_x -= distance_per_tick; //Se pone menos final porque el zombie arranca al final del eje x
+                z->rect.x = (int)z->pos_x;
+                z->frame_timer++;
+                if(z->frame_timer >= ZOMBIE_ANIMATION_SPEED){
+                    z->frame_timer = 0;
+                    z->current_frame = (z->current_frame + 1) % ZOMBIE_TOTAL_FRAMES;
+                }
+                pos_anterior = pos_actual;
+                pos_actual = pos_actual->next; //Paso al siguiente zombie mientras siga activo
+            } else { //En cambio si el zombie esta inactivo
+                ZombieNode *inactivo = pos_actual;
+                    if (pos_anterior){ 
+                        pos_anterior->next = pos_actual->next;//En caso de ya haber recorrido un zombie activo, vuelvo a ese zombie(asi libero al actual inactivo de la memoria)
+                    }else{ 
+                        board->rows[i].first_zombie = pos_actual->next; //En caso de no haber pos_anterior es que nunca hubo un activo, reemplazo first_zombie para el siguiente nodo(esperando que este activo)
+                    };
+                    pos_actual = pos_actual->next;
+                    free(inactivo);
+
+            };
+            };
+        };
+        
+        for (int i = 0; i < GRID_ROWS; i++) {
+            RowSegment* segmento = board->rows[i].first_segment; //Inicio definiendo mi primer segmento
+                while (segmento) {
+                if (segmento->status == STATUS_PLANTA && segmento->planta_data) { //Reviso que haya planta en el segmento
+                    Planta* p = segmento->planta_data; 
+                    if (p->cooldown <= 0){
+                        p->debe_disparar = 1;
+                    }else{
+                        p->cooldown--;
+                    }
+                        p->frame_timer++;
+                        if (p->frame_timer >= PEASHOOTER_ANIMATION_SPEED) {
+                            p->frame_timer = 0;
+                            p->current_frame = (p->current_frame + 1) % PEASHOOTER_TOTAL_FRAMES;
+                            if (p->debe_disparar && p->current_frame == PEASHOOTER_SHOOT_FRAME) {
+                                for (int j = 0; j < MAX_ARVEJAS; j++) {//Hasta que se pase el limite de arvejas
+                                    if (!board->arvejas[j].activo) { //Si no hay arvejas activas, crearlas en donde empieza la planta
+                                        Arveja* a = &board->arvejas[j];
+                                        a->rect.x = GRID_OFFSET_X + segmento->start_col * CELL_WIDTH + CELL_WIDTH / 2;
+                                        a->rect.y = GRID_OFFSET_Y + i * CELL_HEIGHT + CELL_HEIGHT / 4;
+                                        a->rect.w = 20;
+                                        a->rect.h = 20;
+                                        a->activo = 1;
+                                        break;
+                                    }
+                                }
+                                p->cooldown = 120;
+                                p->debe_disparar = 0;
+                            }
+                        }
+                    }
+                    segmento = segmento->next; //Una vez termina con un segmento, tiene que revisar lo que sigue en la fila
+                }
+            }
+            for (int i = 0; i < MAX_ARVEJAS; i++) {
+                if (board->arvejas[i].activo){ //Chequeo que hayan arvejas
+                    board->arvejas[i].rect.x += PEA_SPEED; //Copio las lineas originales cambiando las variables a las structs
+                    if (board->arvejas[i].rect.x > SCREEN_WIDTH) {
+                        board->arvejas[i].activo = 0;
+                        
+                    }
+                }
+            }
+            for (int i = 0; i < GRID_ROWS; i++) {
+                ZombieNode* nodo = board->rows[i].first_zombie; //Misma manera de reemplazar max zombies que al principio
+                while (nodo) { //Recorre todo el nodo de zombies, fijandose 1 por 1 y termina cuando el nodo da NULL, que justo antes de repetir el ciclo nodo pasa a valer el siguiente nodo
+                    Zombie* z = &nodo->zombie_data;
+                    if (z->activo) { //Misma logica que al principio
+                        for (int j = 0; j < MAX_ARVEJAS; j++) { 
+                            if (board->arvejas[j].activo){
+                                int arveja_row = (board->arvejas[j].rect.y - GRID_OFFSET_Y) / CELL_HEIGHT;
+                                if (arveja_row == i && SDL_HasIntersection(&board->arvejas[j].rect, &z->rect)) { //Junto los dos ifs del original en uno y como ahora recorro GRID_ROWS, i es la row donde esta el zombie, asi que igualo i
+                                    board->arvejas[j].activo = 0;
+                                    z->vida -= 25;
+                                    if (z->vida <= 0) z->activo = 0;
+                                }         
+                            }
+                        }
+                    }
+                    nodo = nodo->next;
+                }
+            }
+            board->zombie_spawn_timer--;
+            if(board->zombie_spawn_timer <=0){
+                int row = rand() % GRID_ROWS; //Da a row un valor entre 0 y GRID_ROWS-1
+                gameBoardAddZombie(board, row); //Crea un zombie en la fila row
+                board->zombie_spawn_timer = ZOMBIE_SPAWN_RATE;
+            }
+
 }
 
 void gameBoardDraw(GameBoard* board) {
