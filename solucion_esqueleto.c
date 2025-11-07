@@ -1035,7 +1035,18 @@ int main(int argc, char* args[]) {
         gameBoardUpdate(game_board);
         gameBoardDraw(game_board);
 
-        // TODO: Agregar la lógica para ver si un zombie llegó a la casa y terminó el juego
+        for (int i = 0; i < GRID_ROWS; i++) { 
+            ZombieNode* nodo = game_board->rows[i].first_zombie;
+            while(nodo){
+                Zombie* z = &nodo->zombie_data;
+                if (z->activo && z->rect.x < GRID_OFFSET_X - z->rect.w) {
+                    printf("GAME OVER - Un zombie llego a tu casa!\n");
+                    game_over = 1;
+                    break;
+                }
+            }
+
+        }
 
         SDL_Delay(16);
     }
