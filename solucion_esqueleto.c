@@ -1035,18 +1035,23 @@ int main(int argc, char* args[]) {
         gameBoardUpdate(game_board);
         gameBoardDraw(game_board);
 
-        for (int i = 0; i < GRID_ROWS; i++) { 
+        for (int i = 0; i < GRID_ROWS && !game_over; i++) {
             ZombieNode* nodo = game_board->rows[i].first_zombie;
-            while(nodo){
+            while (nodo) {
                 Zombie* z = &nodo->zombie_data;
-                if (z->activo && z->rect.x < GRID_OFFSET_X - z->rect.w) {
-                    printf("GAME OVER - Un zombie llego a tu casa!\n");
-                    game_over = 1;
-                    break;
+                if (z->activo) {
+                // borde derecho del zombie <= borde izquierdo de la grilla
+                    if (z->rect.x + z->rect.w <= GRID_OFFSET_X) {
+                        printf("GAME OVER - ¡Un zombi llegó a tu casa!\n");
+                        game_over = 1;
+                        break;  // salgo del while
+                    }
                 }
-            }
-
+            nodo = nodo->next; // ¡avanzar!
         }
+        // si rompimos por game_over, el for se corta por la condición && !game_over
+    }
+
 
         SDL_Delay(16);
     }
