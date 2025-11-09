@@ -1055,7 +1055,7 @@ int main(int argc, char* args[]) {
 6. Uso de IA
 
 **Porcentaje de líneas con asistencia de IA:**
-Aproximadamente un **30-40 %** del código fue realizado con asistencia de inteligencia artificial (principalmente ChatGPT). La IA se utilizó para estructurar funciones, corregir errores de punteros y mejorar la organización de memoria dinámica, mientras que la integración, depuración y pruebas fueron realizadas manualmente.
+Aproximadamente un **30-40 %** del código tiene contenido sugerido por la inteligencia artificial (principalmente ChatGPT). El plantéo del código y su estructura fue escrito por nosotros, pero frente a errores puntuales cuyo origen no entendíamos le pedimos a la IA que los detecte y sugiera cambios. Las soluciones generadas no fueron implementadas directamente, sinó que las interpretamos y adaptamos a nuestra estructura propia, ya que la IA tiende a generar todo el código nuevamente mediante su propia lógia. La misma se usó principalmente para corregir errores de punteros y mejorar la organización de memoria dinámica, mientras que la integración, depuración y pruebas fueron realizadas manualmente.
 
 **Verificación de las sugerencias:**
 Cada sugerencia fue revisada, probada y modificada según los requerimientos del TP. Se compiló y ejecutó el código frecuentemente para validar que la IA no generara errores de tipo o fugas de memoria, y se contrastó con las especificaciones de la consigna.
