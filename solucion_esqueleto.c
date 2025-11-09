@@ -1054,16 +1054,16 @@ int main(int argc, char* args[]) {
 
 6. Uso de IA
 
-**Porcentaje de líneas con asistencia de IA:**
-Aproximadamente un **30-40 %** del código tiene contenido sugerido por la inteligencia artificial (principalmente ChatGPT). El plantéo del código y su estructura fue escrito por nosotros, pero frente a errores puntuales cuyo origen no entendíamos le pedimos a la IA que los detecte y sugiera cambios. Las soluciones generadas no fueron implementadas directamente, sinó que las interpretamos y adaptamos a nuestra estructura propia, ya que la IA tiende a generar todo el código nuevamente mediante su propia lógia. La misma se usó principalmente para corregir errores de punteros y mejorar la organización de memoria dinámica, mientras que la integración, depuración y pruebas fueron realizadas manualmente.
+Porcentaje de líneas con asistencia de IA:
+Aproximadamente entre un 30 y 40 % del código tiene sugerencias de IA (ChatGPT). El plantéo y estructura es nuestro, pero para algunos errores que no podiamos resolver pediamos ayuda a la IA y tomabamos sus sugerencias. Las soluciones que nos daba no las implementabamos directamente, las interpretamos y adaptamos para que queden bien con lo que veniamos haciendo ya que por lo general la IA genera todo para su propia logica. La misma se usó principalmente para corregir errores de punteros y mejorar la organización de memoria dinámica, mientras que la integración, depuración y pruebas fueron realizadas manualmente.
 
-**Verificación de las sugerencias:**
-Cada sugerencia fue revisada, probada y modificada según los requerimientos del TP. Se compiló y ejecutó el código frecuentemente para validar que la IA no generara errores de tipo o fugas de memoria, y se contrastó con las especificaciones de la consigna.
+Verificación de las sugerencias:
+Las sugerencias las revisabamos y probabamos para que cumplan los requerimientos del TP. Se compiló y ejecutó el código frecuentemente para validar que la IA no generara errores de tipo o fugas de memoria, y se contrastó con las especificaciones de la consigna. Tambien mencionar que alimentar al workspace donde la IA nos dio sugerencias con los contenidos vistos en clase, es decir las presentaciones mismas, permitio a la IA entender que clase de sugerencias serian utiles y hasta que nivel de complejidad de C.
 
-**Dificultades encontradas:**
-En algunos casos las sugerencias de la IA incluían errores sutiles en el manejo de listas enlazadas o en la liberación de memoria. Se resolvió revisando línea por línea, analizando los diagramas de memoria y verificando con el debugger de `gdb` y pruebas manuales.
+Dificultades encontradas:
+En algunos casos las sugerencias de la IA incluían errores sutiles en el manejo de listas enlazadas o en la liberación de memoria. Lo resolvimos revisando línea por línea y con pruebas manuales. Tambien a veces la IA olvidaba el marco de trabajo o el resto del codigo enviado y sugeria cosas innecesarias debido a que ya estaban implementadas.
 
-**Impacto en el aprendizaje:**
-El uso de IA **ayudó a comprender mejor la sintaxis y el razonamiento detrás de la gestión dinámica de memoria en C**, ya que permitió comparar soluciones, detectar fallos y entender el porqué de cada corrección. En lugar de reemplazar el aprendizaje, funcionó como una herramienta de apoyo y refuerzo.
+Impacto en el aprendizaje:
+La IA ayudó a entender mejor como funciona la memoria dinamica en C, ya que permitió comparar soluciones, detectar fallos y entender el porqué de cada corrección. En lugar de reemplazar el aprendizaje, funcionó como una herramienta de apoyo y refuerzo. La IA en consultas basicas a veces llegaba a explicar temas con profundidad antes de aproximar una solucion, para asi demostrarnos el porque hacia las cosas asi y que pudieramos entenderlo.
 
 */
