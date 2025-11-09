@@ -1049,3 +1049,21 @@ int main(int argc, char* args[]) {
     cerrar();
     return 0;
 }
+
+/* 
+
+6. Uso de IA
+
+**Porcentaje de líneas con asistencia de IA:**
+Aproximadamente un **30-40 %** del código fue realizado con asistencia de inteligencia artificial (principalmente ChatGPT). La IA se utilizó para estructurar funciones, corregir errores de punteros y mejorar la organización de memoria dinámica, mientras que la integración, depuración y pruebas fueron realizadas manualmente.
+
+**Verificación de las sugerencias:**
+Cada sugerencia fue revisada, probada y modificada según los requerimientos del TP. Se compiló y ejecutó el código frecuentemente para validar que la IA no generara errores de tipo o fugas de memoria, y se contrastó con las especificaciones de la consigna.
+
+**Dificultades encontradas:**
+En algunos casos las sugerencias de la IA incluían errores sutiles en el manejo de listas enlazadas o en la liberación de memoria. Se resolvió revisando línea por línea, analizando los diagramas de memoria y verificando con el debugger de `gdb` y pruebas manuales.
+
+**Impacto en el aprendizaje:**
+El uso de IA **ayudó a comprender mejor la sintaxis y el razonamiento detrás de la gestión dinámica de memoria en C**, ya que permitió comparar soluciones, detectar fallos y entender el porqué de cada corrección. En lugar de reemplazar el aprendizaje, funcionó como una herramienta de apoyo y refuerzo.
+
+*/
